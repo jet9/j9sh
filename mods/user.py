@@ -43,7 +43,7 @@ class Jet9CmdUser(object):
             print(user.name)
 
     def add(self, subcmd, user, password, email, domain, tariff, server):
-        """List all users in DB"""
+        """Add user in DB"""
 
         self.__connect_db().add_user(name=user, password=password,
                     email=email, domain=domain, tariff_name=tariff, server=server)
