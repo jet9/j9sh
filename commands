@@ -1,0 +1,197 @@
+LXC:
+		- 
+	- create, start/stop, remove, migrate scripts
+	- ISPManager licence testing
+	- DNS Panel: management,
+	- cgroups setup
+
+
+Frontend:
+	DNS servers
+	Squid config generators
+
+
+Tools:
+	- user database
+	- user management scripts
+		DB info:
+		users
+			username
+			password
+			email
+			contact info
+			server
+			domain
+			active
+			tariff
+			register_date
+
+		tariff
+			decription
+			cpu
+			mem
+			disk
+			io
+			
+			
+
+	
+jet9
+	user
+		info $user
+		list
+		add $user $password $domain $tariff
+		disable $user
+		enable $user
+		remove $user
+		set_password
+			main $user $password
+			lxc_root $user $password
+		set_tariff $user $tariff
+
+> jet9 user info $user
+@out:
+user: u1000
+status: active
+default_domain: u1000.example.com
+
+> jet9 user list
+@out:
+u1000
+u1001
+u1002
+
+> jet9 user add $user $password $domain $tariff
+- check and add user to system
+- create lxc container
+- create tariff_cgroup for user
+- set root password for lxc
+- add iptables rules for user's routing
+- fe0x api: add default domain dns zone
+- fe0x api: add default domain settings to squid peers
+- start user's lxc thru cgroup_wrapper
+- add default domain into ISPManager in lxc
+
+> jet9 user disable $user
+- lock user at @be0x
+- stop user's lxc
+- remove iptable rules
+- fe0x api: redirect all incoming requests to error page
+
+> jet9 user enable $user
+- unlock user at @be0x
+- start user's lxc
+- add iptable rules
+- add iptables rules for user's routing
+- fe0x api: remove peers redirection from error page
+
+> jet9 user remove $user
+- remove user from system
+- stop user's lxc
+- remove user's lxc
+- fe0x api: remove user's dns zones
+- fe0x api: remove user's peers in squid
+
+> jet9 user set_password lxc_root $user $password
+- set new password in user's lxc
+
+> jet9 user set_tariff $user $tariff
+- create new tariff_cgroup
+- change tariff_cgroup for user
+- remove old tariff_cgroup
+
+jet9
+	proxy
+		redirect_error $user
+		peer
+			add $user $domain
+			remove $user [$domain|all]
+			list $user
+	
+	dns
+		add_default_zone $user $domain
+		zone
+			add $user $domain < domain.zone.json
+			add_default $user $domain
+			remove $user [$domain|all]
+			list $user
+			show $domain
+
+> jet9 proxy redirect_error $user
+- fe0x api: redirect all user's incoming requests to error page
+
+> jet9 proxy peer remove $user [$domain|all]
+- fe0x api: remove user's peers
+
+> jet9 proxy peer list $user
+- fe0x api: get list of user's peers
+
+> jet9 dns add_default_zone $user $domain
+- fe0x api: add default zone by predefined template (unique case for `add' action)
+
+> jet9 dns add $user $domain < domain.zone.json
+- fe0x api: add zone for user from json file domain.zone.json
+
+> jet9 dns remove $user [$domain|all]
+- fe0x api: remove user's zone or `all' zones from dns
+
+> jet9 dns list $user
+- fe0x api: list all user's zones
+
+> jet9 dns show $domain
+- fe0x api: show specific user's zone
+
+
+
+# FRONTEND API
+
+jet9
+	dns
+		zone
+			add $user $domain
+			remove $user [$domain|all]
+			show $user $domain
+			list $user
+			list_all
+		reload
+		sync
+		
+	proxy
+		peer
+			add $user $domain
+			remove $user [$domain|all]
+			list $user
+			list_all
+		reload
+		sync
+
+
+# FRONTEND API
+
+/dns/zone
+{
+	action: add,
+	params: {
+		user: u1000,
+		domain: u1000.example.com
+		zone: 	
+	}
+
+}
+
+{
+	action: remove,
+	params: {
+		user: u1000,
+		domain: u1000.example.com
+		domain: all
+	}
+}
+
+{
+	action: add,
+	params: {
+		user: u1000,
+		domain: u1000.example.com
+	}
+}
