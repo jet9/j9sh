@@ -58,10 +58,22 @@ class Jet9DB(object):
         User.create_table()
 
 
-    def _list_tables(self):
+    def _get_tables(self):
         """List all tables in DB"""
 
-        return self.db.execute_sql("SELECT name FROM my_db.sqlite_master WHERE type='table';")
+        return self.db.execute_sql("SELECT name FROM sqlite_master WHERE type='table';")
+
+
+    def _get_table_columns(self, table):
+        """Get columns of specific table"""
+
+        return self.db.execute_sql("PRAGMA table_info('{0}');".format(table))
+
+
+    def _get_table_data(self, table):
+        """Get data of specific table"""
+
+        return self.db.execute_sql("SELECT * FROM '{0}';".format(table))
 
 
     def get_users(self, username=None):

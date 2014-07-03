@@ -40,9 +40,7 @@ class Jet9CmdDB(object):
     def __init__(self):
         """Constructor: returns pattern for commands"""
 
-        self.db = None
-
-        pass
+        self.db = self.__connect_db()
 
     @staticmethod
     def cmd_path():
@@ -66,21 +64,44 @@ class Jet9CmdDB(object):
         # MOVE TO CONFIG:
         self.db = Jet9DB("j9db.sqlite")
 
+        return self.db
 
-    def create(self, subcmd, dbname):
+
+    def create(self, subcmd, dbname, table):
         """Create new database"""
 
         if query_yes_no("Are You really wants to create new db?", default="no"):
-            self.__connect_db()
             self.db._create_tables(dbname)
             print("New empty DB created")
         else:
             print("Canceled")
 
-    def show(self, subcmd, user):
+    def show(self, subcmd, **kwarg):
         """Show information about DB"""
 
-        print("XXX: subcmd: {0} info: {1}".format(subcmd, user))
+        if subcmd == "tables":
+            tables = self.db._get_tables()
+
+            for table in tables:
+                print(table[0])
+
+        elif subcmd == "fields":
+            if "table" not in kwarg.keys():
+                return 1
+
+            cols = self.db._get_table_columns(kwarg["table"])
+
+            for col in cols:
+                print(col[1])
+
+        elif subcmd == "data":
+            if "table" not in kwarg.keys():
+                return 1
+
+            data = self.db._get_table_data(kwarg["table"])
+
+            for row in data:
+                print("|".join(map(lambda x: str(x), row)))
 
 # mapping for autoregister module in j9sh
 # example:
