@@ -42,10 +42,12 @@ class Jet9DB(object):
 
         if db_name is None:
             # we use it in development mode
-            self.db = db_deffered.init(":memory:")
+            db_deffered.init(":memory:")
             self._create_tables()
         else:
-            self.db = db_deffered.init(db_name)
+            db_deffered.init(db_name)
+
+        self.db = db_deffered
 
 
     def _create_tables(self, dbname=None):
