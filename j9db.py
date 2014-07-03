@@ -111,9 +111,94 @@ class Jet9DB(object):
         if created_date is None:
             created_date = date.today()
 
-        return User.create(name=name, password=password, default_password=password,
-            domain=domain, email=email, tariff_=tariff,
-            server=server, created_date=created_date, is_active=is_active)
+        try:
+            return User.create(name=name, password=password, default_password=password,
+                domain=domain, email=email, tariff_=tariff,
+                server=server, created_date=created_date, is_active=is_active)
+        except IntegrityError:
+            raise Jet9DBError("User '{0}' already exists!".format(name))
+
+
+    def toggle_user(self, name, enable=True):
+        """Mark user as 'enabled/disabled' in DB"""
+
+        try:
+            u = User.select().where(User.name == name).get()
+        except:
+            return None
+
+        if enable == True or enable == False:
+            u.is_active = enable
+            u.save()
+            return User.select().where(User.name == name).get().is_active
+        else:
+            raise Jet9DBError("`enable' parameter should be boolean: {0}".format(str(enable)))
+
+
+    def remove_user(self, username):
+        """Get user(s) from db"""
+
+        try:
+            u = User.get(User.name == username)
+            return u.delete_instance()
+
+        except:
+            return None
+
+
+    def remove_user(self, username):
+        """Get user(s) from db"""
+
+        try:
+            u = User.get(User.name == username)
+            return u.delete_instance()
+
+        except:
+            raise Jet9DBError("No such user: {0}".format(username))
+
+
+    def set_password(self, user, password):
+        """Set user's password in db"""
+
+        try:
+            u = User.get(User.name == user)
+
+        except:
+            raise Jet9DBError("No such user: {0}".format(user))
+
+
+        try:
+            u.password = password
+            u.save()
+
+        except Exception as e:
+            raise Jet9DBError("can't set new password: {0}".format(e))
+
+
+    def set_tariff(self, user, tariff):
+        """Set user's password in db"""
+
+        try:
+            u = User.get(User.name == user)
+
+        except:
+            raise Jet9DBError("No such user: {0}".format(user))
+
+        try:
+            t = Tariff.get(Tariff.name == tariff)
+
+        except:
+            raise Jet9DBError("No such tariff: {0}".format(tariff))
+
+        try:
+            u.tariff_ = t
+            u.save()
+
+            print("XXX:", u.tariff_.name)
+
+        except Exception as e:
+            raise Jet9DBError("can't set new tariff: {0}".format(e))
+
 
 if __name__ == "__main__":
 
